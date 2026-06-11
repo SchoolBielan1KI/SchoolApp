@@ -58,7 +58,6 @@ public class MainApp {
             school1.setCity("Київ");
             school1.setStreet("вул. Шевченка");
             school1.setNumber("12");
-            // ТУТ БУЛА ПОМИЛКА: замінили setPhone на setPhoneNumber
             school1.setPhoneNumber("380441234567"); 
             school1.setDirector("Бондаренко І.В.");
             session.save(school1);
@@ -81,7 +80,6 @@ public class MainApp {
             school2.setCity("Черкаси");
             school2.setStreet("просп. Перемоги");
             school2.setNumber("33");
-            // ТУТ БУЛА ПОМИЛКА: замінили setPhone на setPhoneNumber
             school2.setPhoneNumber("380442345678");
             school2.setDirector("Лавренко М.П.");
             session.save(school2);
@@ -102,7 +100,6 @@ public class MainApp {
             school3.setCity("Київ");
             school3.setStreet("вул. Лесі Українки");
             school3.setNumber("3");
-            // ТУТ БУЛА ПОМИЛКА: замінили setPhone на setPhoneNumber
             school3.setPhoneNumber("380443456789");
             school3.setDirector("Сидоренко О.П.");
             session.save(school3);
@@ -173,7 +170,7 @@ public class MainApp {
                          "t.name, " +
                          "j.date, " +
                          "sch.name, " +
-                         "sch.phoneNumber, " +  // Тут теж використовуємо правильне поле
+                         "sch.phoneNumber, " + 
                          "sch.director) " +
                          "FROM Journal j " +
                          "JOIN j.student s " +
@@ -189,7 +186,6 @@ public class MainApp {
             if (results.isEmpty()) {
                 LOG.warn("Вибірка не дала результатів.");
             } else {
-                // Заголовок таблиці
                 LOG.info("| Дата       | Учень                     | Клас         | Предмет         | Оц | Вчитель      | Школа      | Телефон      | Директор        |");
                 LOG.info("---------------------------------------------------------------------------------------------------------------------------------------------");
                 for (ScheduleInfoDTO dto : results) {
@@ -206,5 +202,10 @@ public class MainApp {
         } finally {
             session.close();
         }
+    }
+
+    // --- Метод для тестів ---
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 }
