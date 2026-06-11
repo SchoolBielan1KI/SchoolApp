@@ -13,7 +13,7 @@ import java.util.List;
 
 public class MainApp {
 
-    private static final Logger log = LoggerFactory.getLogger(MainApp.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MainApp.class);
 
     private SessionFactory sessionFactory;
 
@@ -24,7 +24,7 @@ public class MainApp {
             mainApp.insertSampleData();
             mainApp.queryAndLogData();
         } catch (Exception e) {
-            log.error("Помилка в MainApp: ", e);
+            LOG.error("Помилка в MainApp: ", e);
         } finally {
             mainApp.shutdown();
         }
@@ -33,18 +33,18 @@ public class MainApp {
     protected void setup() {
         Configuration configuration = new Configuration().configure();
         sessionFactory = configuration.buildSessionFactory();
-        log.info("SessionFactory успішно створено.");
+        LOG.info("SessionFactory успішно створено.");
     }
 
     protected void shutdown() {
         if (sessionFactory != null) {
             sessionFactory.close();
-            log.info("SessionFactory успішно закрито.");
+            LOG.info("SessionFactory успішно закрито.");
         }
     }
 
     protected void insertSampleData() {
-        log.info("--- ПОЧАТОК ВСТАВКИ ДАНИХ ---");
+        LOG.info("--- ПОЧАТОК ВСТАВКИ ДАНИХ ---");
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -114,10 +114,12 @@ public class MainApp {
             createJournalEntry(session, school3, "11-В", "Павленко Ірина Олександрівна", tPylypenko, "Англійська мова", "5", "2024-09-17");
 
             tx.commit();
-            log.info("--- ДАНІ УСПІШНО ВСТАВЛЕНО ---");
+            LOG.info("--- ДАНІ УСПІШНО ВСТАВЛЕНО ---");
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
-            log.error("Помилка при вставці даних: ", e);
+            if (tx != null) {
+                tx.rollback();
+            }
+            LOG.error("Помилка при вставці даних: ", e);
         } finally {
             session.close();
         }
@@ -157,7 +159,7 @@ public class MainApp {
     }
 
     protected void queryAndLogData() {
-        log.info("--- РЕЗУЛЬТАТЫ ВЫБОРКИ (ПОВНІ ДАНІ) ---");
+        LOG.info("--- РЕЗУЛЬТАТЫ ВЫБОРКИ (ПОВНІ ДАНІ) ---");
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
@@ -185,20 +187,22 @@ public class MainApp {
             tx.commit();
 
             if (results.isEmpty()) {
-                log.warn("Вибірка не дала результатів.");
+                LOG.warn("Вибірка не дала результатів.");
             } else {
                 // Заголовок таблиці
-                log.info("| Дата       | Учень                     | Клас         | Предмет         | Оц | Вчитель      | Школа      | Телефон      | Директор        |");
-                log.info("---------------------------------------------------------------------------------------------------------------------------------------------");
+                LOG.info("| Дата       | Учень                     | Клас         | Предмет         | Оц | Вчитель      | Школа      | Телефон      | Директор        |");
+                LOG.info("---------------------------------------------------------------------------------------------------------------------------------------------");
                 for (ScheduleInfoDTO dto : results) {
-                    log.info(dto.toString()); 
+                    LOG.info(dto.toString()); 
                 }
             }
-            log.info("--- КІНЕЦЬ ВИБІРКИ (Знайдено записів: " + results.size() + ") ---");
+            LOG.info("--- КІНЕЦЬ ВИБІРКИ (Знайдено записів: " + results.size() + ") ---");
 
         } catch (Exception e) {
-            if (tx != null) tx.rollback();
-            log.error("Помилка при виконанні запиту: ", e);
+            if (tx != null) {
+                tx.rollback();
+            }
+            LOG.error("Помилка при виконанні запиту: ", e);
         } finally {
             session.close();
         }

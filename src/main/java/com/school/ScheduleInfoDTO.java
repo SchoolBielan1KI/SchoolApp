@@ -35,16 +35,30 @@ public class ScheduleInfoDTO {
             "| %-10s | %-25s | %-12s | %-15s | %-2s | %-12s | %-10s | %-12s | %-15s |",
             date, studentName, className, subject, rating, teacherName, schoolName, schoolPhone, director
         );
-        // Або простіший варіант, якщо форматування поїде:
-        // return "Дата: " + date + ", Учень: " + studentName + ", Предмет: " + subject + 
-        //        ", Оцінка: " + rating + ", Школа: " + schoolName + ", Тел: " + schoolPhone;
     }
     
     // Геттери (за бажанням, для Hibernate вони не критичні в конструкторі, але краще мати)
-    public String getStudentName() { return studentName; }
-    public String getClassName() { return className; }
-    public String getSubject() { return subject; }
-    public String getRating() { return rating; }
-    public String getTeacherName() { return teacherName; }
-    public LocalDate getDate() { return date; }
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
 }
