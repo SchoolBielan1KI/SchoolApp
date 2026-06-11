@@ -14,11 +14,14 @@ import java.util.List;
 public class MainApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(MainApp.class);
-
     private SessionFactory sessionFactory;
 
     public static void main(String[] args) {
-        MainApp mainApp = new MainApp();
+        runLogic(new MainApp());
+    }
+
+    // Метод для тестування (викликається з main або з тестів)
+    public static void runLogic(MainApp mainApp) {
         try {
             mainApp.setup();
             mainApp.insertSampleData();
@@ -50,15 +53,12 @@ public class MainApp {
         try {
             tx = session.beginTransaction();
 
-            // ==========================================
-            // 1. ШКОЛА: Ліцей №1
-            // ==========================================
             School school1 = new School();
             school1.setName("Ліцей №1");
             school1.setCity("Київ");
             school1.setStreet("вул. Шевченка");
             school1.setNumber("12");
-            school1.setPhoneNumber("380441234567"); 
+            school1.setPhoneNumber("380441234567");
             school1.setDirector("Бондаренко І.В.");
             session.save(school1);
 
@@ -72,9 +72,6 @@ public class MainApp {
             createJournalEntry(session, school1, "8-В", "Ткаченко Наталя Андріївна", tBilyk, "Українська мова", "5", "2024-09-16");
             createJournalEntry(session, school1, "8-А", "Лисенко Артем Володимирович", tBilyk, "Українська мова", "4", "2024-09-16");
 
-            // ==========================================
-            // 2. ШКОЛА: Гімназія №5
-            // ==========================================
             School school2 = new School();
             school2.setName("Гімназія №5");
             school2.setCity("Черкаси");
@@ -92,9 +89,6 @@ public class MainApp {
             createJournalEntry(session, school2, "10-Б", "Марченко Катерина Юріївна", tKravchuk, "Математика", "5", "2024-09-16");
             createJournalEntry(session, school2, "10-А", "Петренко Олена Іванівна", tKravchuk, "Математика", "4", "2024-09-16");
 
-            // ==========================================
-            // 3. ШКОЛА: Школа №123
-            // ==========================================
             School school3 = new School();
             school3.setName("Школа №123");
             school3.setCity("Київ");
@@ -122,8 +116,6 @@ public class MainApp {
         }
     }
 
-    // --- Допоміжні методи ---
-
     private Teacher createTeacher(Session session, String name, String lvl, School school) {
         Teacher teacher = new Teacher();
         teacher.setName(name);
@@ -135,7 +127,6 @@ public class MainApp {
 
     private void createJournalEntry(Session session, School school, String className, String studentName, 
                                     Teacher teacher, String subject, String rating, String dateStr) {
-        
         SchoolClass sClass = new SchoolClass();
         sClass.setName(className);
         sClass.setSchool(school);
@@ -161,23 +152,8 @@ public class MainApp {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-
-            String hql = "SELECT new com.school.ScheduleInfoDTO(" +
-                         "s.name, " +
-                         "sc.name, " +
-                         "j.subject, " +
-                         "j.rating, " +
-                         "t.name, " +
-                         "j.date, " +
-                         "sch.name, " +
-                         "sch.phoneNumber, " + 
-                         "sch.director) " +
-                         "FROM Journal j " +
-                         "JOIN j.student s " +
-                         "JOIN s.schoolClass sc " +
-                         "JOIN sc.school sch " +
-                         "JOIN j.teacher t";
-
+            String hql = "SELECT new com.school.ScheduleInfoDTO(s.name, sc.name, j.subject, j.rating, t.name, j.date, sch.name, sch.phoneNumber, sch.director) " +
+                         "FROM Journal j JOIN j.student s JOIN s.schoolClass sc JOIN sc.school sch JOIN j.teacher t";
             Query<ScheduleInfoDTO> query = session.createQuery(hql, ScheduleInfoDTO.class);
             List<ScheduleInfoDTO> results = query.getResultList();
 
@@ -186,14 +162,11 @@ public class MainApp {
             if (results.isEmpty()) {
                 LOG.warn("Вибірка не дала результатів.");
             } else {
-                LOG.info("| Дата       | Учень                     | Клас         | Предмет         | Оц | Вчитель      | Школа      | Телефон      | Директор        |");
-                LOG.info("---------------------------------------------------------------------------------------------------------------------------------------------");
                 for (ScheduleInfoDTO dto : results) {
-                    LOG.info(dto.toString()); 
+                    LOG.info(dto.toString());
                 }
             }
             LOG.info("--- КІНЕЦЬ ВИБІРКИ (Знайдено записів: " + results.size() + ") ---");
-
         } catch (Exception e) {
             if (tx != null) {
                 tx.rollback();
@@ -204,7 +177,6 @@ public class MainApp {
         }
     }
 
-    // --- Метод для тестів ---
     public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }

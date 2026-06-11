@@ -10,23 +10,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class MainAppTest {
 
-    @Mock
-    private SessionFactory sessionFactory;
-
-    @Mock
-    private Session session;
-
-    @Mock
-    private Transaction transaction;
-
-    @Mock
-    private Query<ScheduleInfoDTO> query;
+    @Mock private SessionFactory sessionFactory;
+    @Mock private Session session;
+    @Mock private Transaction transaction;
+    @Mock private Query<ScheduleInfoDTO> query;
 
     private MainApp mainApp;
 
@@ -34,34 +28,59 @@ class MainAppTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         mainApp = new MainApp();
-        // Впроваджуємо мок сесії в наш MainApp
         mainApp.setSessionFactory(sessionFactory);
+        when(sessionFactory.openSession()).thenReturn(session);
+        when(session.beginTransaction()).thenReturn(transaction);
     }
 
     @Test
-    void testInsertSampleData() {
-        when(sessionFactory.openSession()).thenReturn(session);
-        when(session.beginTransaction()).thenReturn(transaction);
-
-        // Викликаємо метод, обернувши в try-catch
-        try {
-            mainApp.insertSampleData();
-        } catch (Exception e) {
-            // Ігноруємо помилки Hibernate при тестах
-        }
+    void testMainMethod_Coverage() {
+        MainApp spyApp = spy(mainApp);
+        // Успіх
+        assertDoesNotThrow(() -> MainApp.runLogic(spyApp));
         
-        verify(session, atLeastOnce()).beginTransaction();
+        // Помилка (trigger catch)
+        doThrow(new RuntimeException("Error")).when(spyApp).setup();
+        assertDoesNotThrow(() -> MainApp.runLogic(spyApp));
     }
 
     @Test
-    void testQueryAndLogData() {
-        when(sessionFactory.openSession()).thenReturn(session);
-        when(session.beginTransaction()).thenReturn(transaction);
-        when(session.createQuery(anyString(), eq(ScheduleInfoDTO.class))).thenReturn(query);
-        when(query.getResultList()).thenReturn(new ArrayList<>());
+    void testShutdown_Branches() {
+        MainApp app = new MainApp();
+        app.shutdown(); // null branch
+        mainApp.shutdown(); // not null branch
+        verify(sessionFactory).close();
+    }
 
+    @Test
+    void testInsertSampleData_Branches() {
+        // Успіх
+        mainApp.insertSampleData();
+        verify(transaction).commit();
+
+        // Помилка (catch + rollback)
+        doThrow(new RuntimeException("Fail")).when(session).save(any());
+        mainApp.insertSampleData();
+        verify(transaction, times(1)).rollback();
+    }
+
+    @Test
+    void testQueryAndLogData_Branches() {
+        when(session.createQuery(anyString(), eq(ScheduleInfoDTO.class))).thenReturn(query);
+        
+        // Гілка 1: empty
+        when(query.getResultList()).thenReturn(new ArrayList<>());
         mainApp.queryAndLogData();
 
-        verify(session, atLeastOnce()).beginTransaction();
+        // Гілка 2: not empty (loop)
+        List<ScheduleInfoDTO> list = new ArrayList<>();
+        list.add(mock(ScheduleInfoDTO.class));
+        when(query.getResultList()).thenReturn(list);
+        mainApp.queryAndLogData();
+
+        // Гілка 3: exception (catch + rollback)
+        when(query.getResultList()).thenThrow(new RuntimeException("Fail"));
+        mainApp.queryAndLogData();
+        verify(transaction, times(1)).rollback();
     }
 }
