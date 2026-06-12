@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Додати запис</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+
+    <h2 class="mb-4">Додати новий запис</h2>
+
+    <form th:action="@{/add}" th:object="${school}" method="post" style="max-width: 500px;">
+        
+        <div class="mb-3">
+            <label class="form-label">ПІБ учня</label>
+            <input type="text" class="form-control" th:field="*{studentName}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Клас</label>
+            <input type="text" class="form-control" th:field="*{schoolClass}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">ПІБ вчителя</label>
+            <input type="text" class="form-control" th:field="*{teacherName}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Предмет</label>
+            <input type="text" class="form-control" th:field="*{subject}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Тема завдання</label>
+            <input type="text" class="form-control" th:field="*{taskTheme}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Оцінка</label>
+            <input type="text" class="form-control" th:field="*{grade}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Статус уроку</label>
+            <input type="text" class="form-control" th:field="*{lessonStatus}">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Зберегти</button>
+        <a href="/" class="btn btn-secondary ms-2">Повернутися</a>
+    </form>
+
+</body>
+</html>
