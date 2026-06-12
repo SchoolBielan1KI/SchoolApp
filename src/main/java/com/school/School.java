@@ -1,118 +1,88 @@
 package com.school;
 
-import javax.persistence.*;
-import java.util.Set;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "school")
+@Document(collection = "lessons")
 public class School {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
-    private int id;
-
-    @Column(name = "name")
-    private String name;
+    private String id;
     
-    @Column(name = "street")
-    private String street;
-
-    @Column(name = "number")
-    private String number;
-
-    @Column(name = "city")
-    private String city;
-
-    // Ми залишаємо ТІЛЬКИ ЦЕ поле для телефону. 
-    // Поле "phone" (якщо воно у вас було) ми видаляємо, щоб не було дублікатів.
-    @Column(name = "phone_number")
-    private String phoneNumber;
-
-    @Column(name = "director")
-    private String director;
-
-    @OneToMany(mappedBy = "school")
-    private Set<SchoolClass> classes;
-
-    @OneToMany(mappedBy = "school")
-    private Set<Teacher> teachers;
+    private String studentName;
+    private String schoolClass;
+    private String teacherName;
+    private String subject;
+    private String taskTheme;
+    private String grade;
+    private String lessonStatus;
 
     public School() {
     }
 
     // --- Геттери та Сеттери ---
 
-    public int getId() {
-        return id;
+    public String getId() { 
+        return id; 
+    }
+    
+    public void setId(String id) { 
+        this.id = id; 
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getStudentName() { 
+        return studentName; 
+    }
+    
+    public void setStudentName(String studentName) { 
+        this.studentName = studentName; 
     }
 
-    public String getName() {
-        return name;
+    public String getSchoolClass() { 
+        return schoolClass; 
+    }
+    
+    public void setSchoolClass(String schoolClass) { 
+        this.schoolClass = schoolClass; 
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getTeacherName() { 
+        return teacherName; 
+    }
+    
+    public void setTeacherName(String teacherName) { 
+        this.teacherName = teacherName; 
     }
 
-    public String getStreet() {
-        return street;
+    public String getSubject() { 
+        return subject; 
+    }
+    
+    public void setSubject(String subject) { 
+        this.subject = subject; 
     }
 
-    public void setStreet(String street) {
-        this.street = street;
+    public String getTaskTheme() { 
+        return taskTheme; 
+    }
+    
+    public void setTaskTheme(String taskTheme) { 
+        this.taskTheme = taskTheme; 
     }
 
-    public String getNumber() {
-        return number;
+    public String getGrade() { 
+        return grade; 
+    }
+    
+    public void setGrade(String grade) { 
+        this.grade = grade; 
     }
 
-    public void setNumber(String number) {
-        this.number = number;
+    public String getLessonStatus() { 
+        return lessonStatus; 
     }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    // Уважно тут: геттер і сеттер працюють саме з phoneNumber
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getDirector() {
-        return director;
-    }
-
-    public void setDirector(String director) {
-        this.director = director;
-    }
-
-    public Set<SchoolClass> getClasses() {
-        return classes;
-    }
-
-    public void setClasses(Set<SchoolClass> classes) {
-        this.classes = classes;
-    }
-
-    public Set<Teacher> getTeachers() {
-        return teachers;
-    }
-
-    public void setTeachers(Set<Teacher> teachers) {
-        this.teachers = teachers;
+    
+    public void setLessonStatus(String lessonStatus) { 
+        this.lessonStatus = lessonStatus; 
     }
 }
