@@ -21,8 +21,8 @@ jobs:
           distribution: 'temurin'
           server-id: github
           server-username: ${{ github.actor }}
-          server-password: ${{ secrets.RELEASE_TOKEN }}
-
+          server-password: MAVEN_PASSWORD
+          
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -31,4 +31,4 @@ jobs:
       - name: Maven Release
         run: mvn --batch-mode release:prepare release:perform -Darguments="-DskipTests"
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          MAVEN_PASSWORD: ${{ secrets.RELEASE_TOKEN }}
