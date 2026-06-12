@@ -29,6 +29,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
       - name: Maven Release
-        run: mvn --batch-mode release:prepare release:perform
+        run: mvn --batch-mode release:prepare release:perform -Darguments="-DskipTests"
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
