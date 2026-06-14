@@ -78,6 +78,11 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <version>3.2.2</version>
+            <configuration>
+                <excludes>
+                    <exclude>**/*E2ETests.java</exclude>
+                </excludes>
+            </configuration>
         </plugin>
 
         <plugin>
@@ -158,8 +163,11 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
                         <includes>
-                            <include>**/*E2ETest.java</include>
+                            <include>**/*E2ETests.java</include>
                         </includes>
+                        <excludes>
+                            <exclude>none</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
             </plugins>
