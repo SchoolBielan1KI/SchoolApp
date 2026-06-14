@@ -91,4 +91,5 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run E2E Tests
-        run: mvn test -P e2e-ui
+        # Тут ми передаємо URL твого Render-сервісу
+        run: mvn test -P e2e-ui -DE2E_BASE_URL=https://schoolapp-5.onrender.com
