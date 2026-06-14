@@ -71,18 +71,17 @@ jobs:
   deploy-render-pr:
     name: Deploy to Render (PR)
     needs: docker-publish
-    if: github.event_name == 'pull_request'
     permissions:
       contents: read
     uses: ./.github/workflows/render-deploy.yml
     secrets: inherit
 
-  # НОВА ДЖОБА ДЛЯ E2E ТЕСТІВ
   e2e-tests:
     name: E2E UI Tests
     needs: deploy-render-pr
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    env:
+      E2E_BASE_URL: https://schoolapp-5.onrender.com
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -92,5 +91,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run E2E Tests
-        # Тут ми передаємо URL твого Render-сервісу
-        run: mvn test -P e2e-ui -DE2E_BASE_URL=https://schoolapp-5.onrender.com
+        run: mvn test -P e2e-ui

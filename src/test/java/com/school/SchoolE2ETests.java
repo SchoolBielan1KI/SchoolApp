@@ -1,6 +1,7 @@
 package com.school;
 
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.LoadState;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,24 +20,21 @@ public class SchoolE2ETests {
     void createContext() {
         page = browser.newPage();
         
-        // 1. Спочатку намагаємось взяти URL зі змінних середовища (це найкраще для CI/GitHub Actions)
         String baseUrl = System.getenv("E2E_BASE_URL");
-        
-        // 2. Якщо змінної немає, беремо з системної властивості (якщо ти запускаєш локально командою mvn test -D...)
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = System.getProperty("E2E_BASE_URL", "http://localhost:8080");
         }
         
         page.navigate(baseUrl);
+        // Чекаємо, поки сторінка повністю завантажиться
+        page.waitForLoadState(LoadState.NETWORKIDLE);
     }
 
     @Test
     void testCreateAndDeleteStudent() {
-        // Переконайся, що заголовок сторінки точно відповідає тому, що у тебе в <title>
-        // Якщо тест впаде тут, подивись в браузері, який у тебе title, і впиши його сюди
-        // assertTrue(page.title().contains("School")); 
+        // Чекаємо саме на поле, щоб тест не падав по тайм-ауту
+        page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
 
-        // Створення запису
         page.fill("input[name='studentName']", "Ivan Ivanov");
         page.fill("input[name='schoolClass']", "11-A");
         page.fill("input[name='teacherName']", "Petro Petrov");
@@ -47,14 +45,15 @@ public class SchoolE2ETests {
 
         page.click("button[type='submit']");
 
-        // Перевірка, що запис з'явився (за замовчуванням текст на сторінці)
-        assertTrue(page.isVisible("text=Ivan Ivanov"));
+        // Чекаємо появи запису в списку
+        assertTrue(page.waitForSelector("text=Ivan Ivanov") != null);
 
-        // Видалення (припускаємо, що кнопка має текст "Видалити")
-        // Якщо не знаходить, спробуй селектор за класом або за індексом
+        // Видалення
         page.click("text=Видалити"); 
 
-        // Перевірка, що запис зник
+        // Перевірка зникнення
+        // Чекаємо, поки елемент зникне або просто перевіряємо відсутність
+        page.waitForLoadState(LoadState.NETWORKIDLE);
         assertFalse(page.isVisible("text=Ivan Ivanov"));
     }
 
