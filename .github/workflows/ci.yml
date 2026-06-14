@@ -81,7 +81,7 @@ jobs:
     needs: deploy-render-pr
     runs-on: ubuntu-latest
     env:
-      E2E_BASE_URL: https://schoolapp-5.onrender.com
+      E2E_BASE_URL: https://schoolapp-57rw.onrender.com
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
