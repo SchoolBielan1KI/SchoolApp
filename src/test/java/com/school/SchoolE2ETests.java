@@ -36,25 +36,30 @@ public class SchoolE2ETests {
         try {
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
 
-            page.fill("input[name='studentName']", "Ivan Ivanov");
-            page.fill("input[name='schoolClass']", "11-A");
-            page.fill("input[name='teacherName']", "Petro Petrov");
-            page.fill("input[name='subject']", "Math");
-            page.fill("input[name='taskTheme']", "Algebra");
-            page.fill("input[name='grade']", "12");
-            page.fill("input[name='lessonStatus']", "Completed");
+            page.fill("input[name='studentName']", "Сидоренко Максим Олегович");
+            page.fill("input[name='schoolClass']", "10-Б"); // Здесь кириллическая 'А'
+            page.fill("input[name='teacherName']", "Коваленко Сергій Петрович");
+            page.fill("input[name='subject']", "Математика");
+            page.fill("input[name='taskTheme']", "	Алгебраїчні вирази");
+            page.fill("input[name='grade']", "4");
+            page.fill("input[name='lessonStatus']", "Проведено");
 
             page.click("button[type='submit']");
 
-            page.waitForSelector("text=Ivan Ivanov", new Page.WaitForSelectorOptions().setTimeout(30000));
+            // 3. Ждем появления записи в списке
+            page.waitForSelector("text=Сидоренко Максим Олегович", new Page.WaitForSelectorOptions().setTimeout(30000));
 
+            // 4. Удаление
             page.onDialog(dialog -> dialog.accept());
-            page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click();
+            
+            Locator row = page.locator("tr:has-text('Сидоренко Максим Олегович')");
+            row.locator("text=Видалити").click(new Locator.ClickOptions().setForce(true));
 
-            page.waitForFunction("!document.body.innerText.includes('Ivan Ivanov')", null, 
+            // 5. Ожидание удаления
+            page.waitForFunction("!document.body.innerText.includes('Сидоренко Максим Олегович')", null, 
                 new Page.WaitForFunctionOptions().setTimeout(30000));
 
-            assertFalse(page.isVisible("text=Ivan Ivanov"), "Запись 'Ivan Ivanov' не удалилась!");
+            assertFalse(page.isVisible("text=Сидоренко Максим Олегович"), "Запись не удалилась!");
             
         } catch (Exception e) {
             page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")));
