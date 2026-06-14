@@ -3,6 +3,7 @@ package com.school;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.LoadState;
 import org.junit.jupiter.api.*;
+import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SchoolE2ETests {
@@ -19,42 +20,45 @@ public class SchoolE2ETests {
     @BeforeEach
     void createContext() {
         page = browser.newPage();
-        
         String baseUrl = System.getenv("E2E_BASE_URL");
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = System.getProperty("E2E_BASE_URL", "http://localhost:8080");
         }
-        
         page.navigate(baseUrl);
-        // Чекаємо, поки сторінка повністю завантажиться
         page.waitForLoadState(LoadState.NETWORKIDLE);
     }
 
     @Test
     void testCreateAndDeleteStudent() {
-        // Чекаємо саме на поле, щоб тест не падав по тайм-ауту
-        page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
+        try {
+            // Чекаємо поки сторінка завантажиться і поле стане доступним
+            page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(45000));
 
-        page.fill("input[name='studentName']", "Ivan Ivanov");
-        page.fill("input[name='schoolClass']", "11-A");
-        page.fill("input[name='teacherName']", "Petro Petrov");
-        page.fill("input[name='subject']", "Math");
-        page.fill("input[name='taskTheme']", "Algebra");
-        page.fill("input[name='grade']", "12");
-        page.fill("input[name='lessonStatus']", "Completed");
+            page.fill("input[name='studentName']", "Ivan Ivanov");
+            page.fill("input[name='schoolClass']", "11-A");
+            page.fill("input[name='teacherName']", "Petro Petrov");
+            page.fill("input[name='subject']", "Math");
+            page.fill("input[name='taskTheme']", "Algebra");
+            page.fill("input[name='grade']", "12");
+            page.fill("input[name='lessonStatus']", "Completed");
 
-        page.click("button[type='submit']");
+            page.click("button[type='submit']");
 
-        // Чекаємо появи запису в списку
-        assertTrue(page.waitForSelector("text=Ivan Ivanov") != null);
+            // Чекаємо появи напису в списку
+            assertTrue(page.waitForSelector("text=Ivan Ivanov") != null);
 
-        // Видалення
-        page.click("text=Видалити"); 
+            // Видалення
+            page.click("text=Видалити"); 
 
-        // Перевірка зникнення
-        // Чекаємо, поки елемент зникне або просто перевіряємо відсутність
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-        assertFalse(page.isVisible("text=Ivan Ivanov"));
+            // Перевірка, що запис зник
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            assertFalse(page.isVisible("text=Ivan Ivanov"));
+            
+        } catch (Exception e) {
+            // Робимо скріншот, якщо впало
+            page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")));
+            throw e;
+        }
     }
 
     @AfterAll

@@ -81,7 +81,7 @@ jobs:
     needs: deploy-render-pr
     runs-on: ubuntu-latest
     env:
-      E2E_BASE_URL: https://schoolapp-57rw.onrender.com
+      E2E_BASE_URL: https://schoolapp-5.onrender.com
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -91,5 +91,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run E2E Tests
-        # Тут ми передаємо URL твого Render-сервісу
-        run: mvn test -P e2e-ui -DE2E_BASE_URL=https://schoolapp-5.onrender.com
+        run: mvn test -P e2e-ui
