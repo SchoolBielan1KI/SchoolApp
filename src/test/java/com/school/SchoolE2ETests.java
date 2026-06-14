@@ -31,9 +31,10 @@ public class SchoolE2ETests {
     @Test
     void testCreateAndDeleteStudent() {
         try {
-            // Чекаємо поки сторінка завантажиться і поле стане доступним
+            // 1. Чекаємо поки сторінка завантажиться і поле стане доступним
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(45000));
 
+            // 2. Заповнення форми
             page.fill("input[name='studentName']", "Ivan Ivanov");
             page.fill("input[name='schoolClass']", "11-A");
             page.fill("input[name='teacherName']", "Petro Petrov");
@@ -44,15 +45,16 @@ public class SchoolE2ETests {
 
             page.click("button[type='submit']");
 
-            // Чекаємо появи напису в списку
-            assertTrue(page.waitForSelector("text=Ivan Ivanov") != null);
+            // 3. Чекаємо появи нашого запису в списку
+            page.waitForSelector("text=Ivan Ivanov", new Page.WaitForSelectorOptions().setTimeout(30000));
 
-            // Видалення
-            page.click("text=Видалити"); 
+            // 4. Видалення конкретного запису
+            // Шукаємо рядок (tr), в якому є текст "Ivan Ivanov", і всередині нього кнопку "Видалити"
+            page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click();
 
-            // Перевірка, що запис зник
+            // 5. Перевірка, що запис зник
             page.waitForLoadState(LoadState.NETWORKIDLE);
-            assertFalse(page.isVisible("text=Ivan Ivanov"));
+            assertFalse(page.isVisible("text=Ivan Ivanov"), "Запис 'Ivan Ivanov' все ще присутній на сторінці після видалення!");
             
         } catch (Exception e) {
             // Робимо скріншот, якщо впало
