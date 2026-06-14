@@ -20,10 +20,13 @@ public class SchoolE2ETests {
     @BeforeEach
     void createContext() {
         page = browser.newPage();
+        
+        // Исправленный URL
         String baseUrl = System.getenv("E2E_BASE_URL");
         if (baseUrl == null || baseUrl.isEmpty()) {
-            baseUrl = System.getProperty("E2E_BASE_URL", "http://localhost:8080");
+            baseUrl = "https://schoolapp-57rw.onrender.com"; 
         }
+        
         page.navigate(baseUrl);
         page.waitForLoadState(LoadState.NETWORKIDLE);
     }
@@ -31,10 +34,8 @@ public class SchoolE2ETests {
     @Test
     void testCreateAndDeleteStudent() {
         try {
-            // Ждем форму
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
 
-            // Заполнение
             page.fill("input[name='studentName']", "Ivan Ivanov");
             page.fill("input[name='schoolClass']", "11-A");
             page.fill("input[name='teacherName']", "Petro Petrov");
@@ -42,16 +43,14 @@ public class SchoolE2ETests {
             page.fill("input[name='taskTheme']", "Algebra");
             page.fill("input[name='grade']", "12");
             page.fill("input[name='lessonStatus']", "Completed");
+
             page.click("button[type='submit']");
 
-            // Ждем появления в списке
             page.waitForSelector("text=Ivan Ivanov", new Page.WaitForSelectorOptions().setTimeout(30000));
 
-            // Удаление (на случай диалога)
             page.onDialog(dialog -> dialog.accept());
             page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click();
 
-            // Жесткое ожидание исчезновения текста
             page.waitForFunction("!document.body.innerText.includes('Ivan Ivanov')", null, 
                 new Page.WaitForFunctionOptions().setTimeout(30000));
 
