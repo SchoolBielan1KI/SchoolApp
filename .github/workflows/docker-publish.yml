@@ -1,0 +1,57 @@
+name: Docker Publish
+
+on:
+  push:
+    branches: [ "mongodb" ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "mongodb" ]
+  workflow_call:
+
+env:
+  REGISTRY: ghcr.io
+  # Автоматично сформує ім'я образу на основі твого репозиторію (наприклад, schoolbielan1ki/schoolapp)
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  docker-publish:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Авторизація в GitHub Container Registry з використанням вбудованого GITHUB_TOKEN
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Генерація тегів (назва гілки, SHA коміту, latest для гілки mongodb)
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/mongodb' }}
+
+      # Збирання образу із зазначенням шляху до нашого Dockerfile у папці deploy
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deploy/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ id.meta.outputs.tags }}
+          labels: ${{ id.meta.outputs.labels }}
