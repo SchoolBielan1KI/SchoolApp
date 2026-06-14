@@ -67,7 +67,6 @@ jobs:
       - name: Run Integration Tests
         run: mvn verify -Dsurefire.skip=true --no-transfer-progress
 
-  # НОВА ДЖОБА: Запускається лише після тестів
   docker-publish:
     name: Publish Docker
     needs: [build-and-unit-tests, integration-tests]
@@ -75,3 +74,13 @@ jobs:
       contents: read
       packages: write
     uses: ./.github/workflows/docker-publish.yml
+
+  # НОВА ДЖОБА ДЛЯ RENDER
+  deploy-render-pr:
+    name: Deploy to Render (PR)
+    needs: docker-publish
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/render-deploy.yml
+    secrets: inherit
