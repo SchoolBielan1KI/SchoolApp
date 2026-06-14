@@ -92,3 +92,9 @@ jobs:
           cache: maven
       - name: Run E2E Tests
         run: mvn test -P e2e-ui
+      - name: Upload Error Screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-error-screenshot
+          path: test-error.png
