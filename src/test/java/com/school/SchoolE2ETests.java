@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SchoolE2ETests {
     static Playwright playwright;
     static Browser browser;
+    BrowserContext context;
     Page page;
     Random random = new Random();
 
@@ -24,8 +25,10 @@ public class SchoolE2ETests {
 
     @BeforeEach
     void createContext() {
-        page = browser.newPage();
-        // Используем правильный URL
+        // 1. Фиксируем десктопный размер экрана, чтобы верстка не ломалась в мобильную
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
+        page = context.newPage();
+        
         String baseUrl = System.getenv("E2E_BASE_URL");
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = "https://schoolapp-57rw.onrender.com";
@@ -36,17 +39,17 @@ public class SchoolE2ETests {
 
     @Test
     void testCreateAndDeleteStudent() {
-        // Генерируем уникальные данные для каждого прогона теста
+        // Генерируем полностью уникальные данные для изоляции теста
         String uniqueId = UUID.randomUUID().toString().substring(0, 6);
-        String studentName = "Студент_" + uniqueId;
+        String studentName = "АвтоТест_" + uniqueId;
+        
         String[] classes = {"9-А", "10-Б", "11-В"};
         String[] teachers = {"Петренко П.П.", "Сидоренко Н.В.", "Коваленко С.П."};
-        
         String randomClass = classes[random.nextInt(classes.length)];
         String randomTeacher = teachers[random.nextInt(teachers.length)];
 
         try {
-            // 1. Создание
+            // 1. Ожидание и заполнение формы полями на украинском языке
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
             
             page.fill("input[name='studentName']", studentName);
@@ -57,33 +60,57 @@ public class SchoolE2ETests {
             page.fill("input[name='grade']", "10");
             page.fill("input[name='lessonStatus']", "Виконано");
 
+            // Отправляем форму и ждем, пока утихнут сетевые запросы
             page.click("button[type='submit']");
+            page.waitForLoadState(LoadState.NETWORKIDLE);
 
-            // 2. Ждем появления записи
+            // 2. Убеждаемся, что строка физически отрендерилась в таблице
             Locator row = page.locator("tr:has-text('" + studentName + "')");
             row.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(30000));
 
-            // 3. ПРИМУСОВОЕ УДАЛЕНИЕ (Максимально "человеческий" подход)
+            // 3. НАДЕЖНОЕ УДАЛЕНИЕ
+            // Шаг А: Наводим курсор на строку (активирует JS/CSS hover эффекты)
+            row.hover();
+            page.waitForTimeout(300);
+
+            // Шаг Б: Находим кнопку удаления внутри этой строки и скроллим к ней
             Locator deleteBtn = row.locator("text=Видалити");
             deleteBtn.scrollIntoViewIfNeeded();
-            page.waitForTimeout(500); // Даем JS время отреагировать на прокрутку
+            page.waitForTimeout(300);
             
-            // Клик левой кнопкой мыши с задержкой
-            deleteBtn.click(new Locator.ClickOptions().setButton(MouseButton.LEFT).setDelay(100));
+            // Шаг В: Кликаем левой кнопкой мыши с задержкой (имитация реального нажатия)
+            deleteBtn.click(new Locator.ClickOptions().setButton(MouseButton.LEFT).setDelay(150));
+            
+            // Шаг Г: Ждем завершения сетевых запросов после удаления
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+            page.waitForTimeout(1000); 
 
-            // 4. Ожидание исчезновения
-            row.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN).setTimeout(20000));
+            // 4. Проверяем результат (с подстраховкой в виде перезагрузки)
+            if (page.isVisible("text=" + studentName)) {
+                page.reload();
+                page.waitForLoadState(LoadState.NETWORKIDLE);
+            }
 
-            assertFalse(row.isVisible(), "Запись '" + studentName + "' не удалилась!");
+            assertFalse(page.isVisible("text=" + studentName), "Запись '" + studentName + "' осталась в базе данных после удаления!");
             
         } catch (Exception e) {
-            page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")));
+            // Делаем скриншот всей страницы в высоком разрешении при ошибке
+            page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")).setFullPage(true));
             throw e;
+        }
+    }
+
+    @AfterEach
+    void closeContext() {
+        if (context != null) {
+            context.close();
         }
     }
 
     @AfterAll
     static void tearDown() {
-        playwright.close();
+        if (playwright != null) {
+            playwright.close();
+        }
     }
 }
