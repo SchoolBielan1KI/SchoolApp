@@ -2,7 +2,6 @@ package com.school;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.LoadState;
-import com.microsoft.playwright.options.WaitForSelectorState;
 import org.junit.jupiter.api.*;
 import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,10 +31,10 @@ public class SchoolE2ETests {
     @Test
     void testCreateAndDeleteStudent() {
         try {
-            // 1. Чекаємо на завантаження форми
+            // 1. Очікування форми
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
 
-            // 2. Заповнення форми
+            // 2. Створення
             page.fill("input[name='studentName']", "Ivan Ivanov");
             page.fill("input[name='schoolClass']", "11-A");
             page.fill("input[name='teacherName']", "Petro Petrov");
@@ -46,21 +45,21 @@ public class SchoolE2ETests {
 
             page.click("button[type='submit']");
 
-            // 3. Чекаємо на появу запису
-            Locator studentRow = page.locator("tr:has-text('Ivan Ivanov')");
-            studentRow.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(30000));
+            // 3. Чекаємо появи запису
+            page.waitForSelector("text=Ivan Ivanov", new Page.WaitForSelectorOptions().setTimeout(30000));
 
-            // 4. Налаштування діалогу (натискання "ОК" при видаленні)
+            // 4. Обробка підтвердження (якщо є діалог)
             page.onDialog(dialog -> dialog.accept());
 
-            // 5. Видалення конкретного рядка
-            studentRow.locator("text=Видалити").click();
+            // 5. Видалення
+            page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click();
 
-            // 6. Жорстке очікування: чекаємо, поки сам рядок зникне з DOM
-            studentRow.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN).setTimeout(30000));
+            // 6. ПРИМУСОВИЙ ПЕРЕЗАВАНТАЖЕННЯ (Гарантує свіжий стан з бази)
+            page.reload();
+            page.waitForLoadState(LoadState.NETWORKIDLE);
 
             // 7. Фінальна перевірка
-            assertFalse(studentRow.isVisible(), "Запис 'Ivan Ivanov' все ще присутній на сторінці!");
+            assertFalse(page.isVisible("text=Ivan Ivanov"), "Запис 'Ivan Ivanov' не був видалений з бази!");
             
         } catch (Exception e) {
             page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")));
