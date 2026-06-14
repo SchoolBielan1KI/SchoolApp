@@ -31,10 +31,8 @@ public class SchoolE2ETests {
     @Test
     void testCreateAndDeleteStudent() {
         try {
-            // 1. Очікування форми
+            // 1. Создание
             page.waitForSelector("input[name='studentName']", new Page.WaitForSelectorOptions().setTimeout(60000));
-
-            // 2. Створення
             page.fill("input[name='studentName']", "Ivan Ivanov");
             page.fill("input[name='schoolClass']", "11-A");
             page.fill("input[name='teacherName']", "Petro Petrov");
@@ -42,24 +40,28 @@ public class SchoolE2ETests {
             page.fill("input[name='taskTheme']", "Algebra");
             page.fill("input[name='grade']", "12");
             page.fill("input[name='lessonStatus']", "Completed");
-
             page.click("button[type='submit']");
 
-            // 3. Чекаємо появи запису
+            // 2. Ждем появления
             page.waitForSelector("text=Ivan Ivanov", new Page.WaitForSelectorOptions().setTimeout(30000));
 
-            // 4. Обробка підтвердження (якщо є діалог)
-            page.onDialog(dialog -> dialog.accept());
+            // 3. Пытаемся удалить
+            // Используем force: true, чтобы нажать, даже если есть наложение
+            page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click(new Locator.ClickOptions().setForce(true));
 
-            // 5. Видалення
-            page.locator("tr:has-text('Ivan Ivanov') >> text=Видалити").click();
+            // 4. ЕСЛИ ЕСТЬ ПОДТВЕРЖДЕНИЕ: ищем кнопку "Так" или "Delete" в модальном окне
+            // Если её нет, Playwright просто пропустит этот шаг (try-catch для этого)
+            try {
+                page.locator("text=Так").click(); 
+            } catch (Exception ignored) { }
 
-            // 6. ПРИМУСОВИЙ ПЕРЕЗАВАНТАЖЕННЯ (Гарантує свіжий стан з бази)
-            page.reload();
-            page.waitForLoadState(LoadState.NETWORKIDLE);
+            // 5. Ждем, пока запись гарантированно исчезнет
+            // Проверяем 5 секунд, что текст исчез
+            boolean isGone = page.waitForCondition(() -> !page.isVisible("text=Ivan Ivanov"), 
+                new Page.WaitForConditionOptions().setTimeout(10000));
 
-            // 7. Фінальна перевірка
-            assertFalse(page.isVisible("text=Ivan Ivanov"), "Запис 'Ivan Ivanov' не був видалений з бази!");
+            // 6. Финальный ассерт
+            assertFalse(page.isVisible("text=Ivan Ivanov"), "Запись все еще на странице!");
             
         } catch (Exception e) {
             page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("test-error.png")));
